@@ -1,0 +1,89 @@
+.detail-card {
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.detail-card__section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-3);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-4);
+}
+
+.detail-row {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.detail-row__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-soft);
+}
+
+.detail-row__value {
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.detail-text {
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+.detail-layout {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.detail-layout__main {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* Addendum compare */
+.addendum-change-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.addendum-change-compare__col {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgba(22, 32, 51, 0.03);
+  border: 1px solid var(--color-border);
+}
+
+.addendum-change-compare__col--new {
+  background: rgba(31, 138, 91, 0.05);
+  border-color: rgba(31, 138, 91, 0.2);
+}
+
+.addendum-change-compare__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-2);
+}
+
+.addendum-change-compare__value {
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
