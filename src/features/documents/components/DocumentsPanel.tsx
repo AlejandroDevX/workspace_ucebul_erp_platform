@@ -19,7 +19,7 @@ interface DocumentsPanelProps {
 
 type UploadEntry = { name: string; status: 'uploading' | 'error'; message?: string }
 
-function useDocumentsQuery(referenceType: string, referenceId: EntityId) {
+export function useDocumentsQuery(referenceType: string, referenceId: EntityId) {
   return useQuery({
     queryKey: ['documents', referenceType, referenceId],
     queryFn: async () => {

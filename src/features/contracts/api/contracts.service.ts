@@ -14,4 +14,8 @@ export const contractsService = {
     const response = await erpApi.post(`/erp/contracts/${id}/close`, payload ?? {})
     return response.data
   },
+  async requestSignature(id: EntityId, payload?: { erp_external_signature_request_document_id?: EntityId }) {
+    const response = await erpApi.post(`/erp/contracts/${id}/request-signature`, payload ?? {})
+    return response.data
+  },
 }

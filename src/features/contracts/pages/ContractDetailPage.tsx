@@ -1,9 +1,17 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, ArrowRight, X } from 'lucide-react'
-import { useContractQuery, useMoveContractStepMutation, useCloseContractMutation } from '../hooks/useContractsQuery'
+import { ArrowLeft, Pencil, Link, Copy } from 'lucide-react'
+import {
+  useContractQuery,
+  useMoveContractStepMutation,
+  useCloseContractMutation,
+  useRequestContractSignatureMutation,
+} from '../hooks/useContractsQuery'
 import { Can } from '@/components/permissions/Can'
 import { DocumentsPanel } from '@/features/documents/components/DocumentsPanel'
 import { CommentsPanel } from '@/features/comments/components/CommentsPanel'
+import { ProcessActionBar } from '@/components/process/ProcessActionBar'
+import { useDocumentsQuery } from '@/features/documents/components/DocumentsPanel'
+import { WorkflowStepper } from '@/components/process/WorkflowStepper'
 import { APP_ROUTES } from '@/routes/paths'
 import { getErrorMessage } from '@/utils/error-message'
 import { formatDate, formatCurrency } from '@/utils/format'
@@ -21,10 +29,12 @@ function DetailRow({ label, value }: { label: string; value?: string | null }) {
 export function ContractDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { hasPermission } = useAuth()
+  const { user, hasPermission } = useAuth()
   const query = useContractQuery(id ?? '')
   const moveMutation = useMoveContractStepMutation(id ?? '')
   const closeMutation = useCloseContractMutation(id ?? '')
+  const signatureMutation = useRequestContractSignatureMutation(id ?? '')
+  const documentsQuery = useDocumentsQuery('contract', id ?? '')
 
   if (query.isLoading) {
     return (
@@ -48,6 +58,24 @@ export function ContractDetailPage() {
 
   const contract = query.data
   if (!contract) return null
+
+  const steps = contract.process?.workflow?.steps ?? []
+  const currentStepSlug = contract.process?.current_step?.erp_workflow_step_slug
+  const activeSignatureRequest = contract.process?.signatureRequests?.find(
+    (r) => r.erp_external_signature_request_status === 'pending' ||
+      r.erp_external_signature_request_status === 'viewed',
+  )
+
+  const assignedUserId = contract.process?.erp_process_assigned_to_workspace_user_id
+  const responsibleRole = contract.process?.erp_process_current_responsible_role_name
+  const canAct = assignedUserId
+    ? user?.workspace_user_id === assignedUserId
+    : Boolean(responsibleRole && user?.applicationRole === responsibleRole)
+
+  const hasDocuments = (documentsQuery.data?.length ?? 0) > 0
+  const advanceBlockedReason = currentStepSlug === 'legal_review' && !hasDocuments
+    ? 'Debes cargar al menos un documento antes de enviar a Dirección'
+    : undefined
 
   return (
     <div className="page-content">
@@ -75,32 +103,28 @@ export function ContractDetailPage() {
               Editar
             </button>
           </Can>
-
-          <Can permission="erp.contracts.move_step">
-            <button
-              className="btn btn--secondary"
-              type="button"
-              disabled={moveMutation.isPending}
-              onClick={() => void moveMutation.mutate()}
-            >
-              <ArrowRight size={15} aria-hidden="true" />
-              {moveMutation.isPending ? 'Moviendo...' : 'Mover paso'}
-            </button>
-          </Can>
-
-          {hasPermission('erp.contracts.close') && contract.erp_contract_status !== 'closed' && (
-            <button
-              className="btn btn--danger"
-              type="button"
-              disabled={closeMutation.isPending}
-              onClick={() => void closeMutation.mutate()}
-            >
-              <X size={15} aria-hidden="true" />
-              {closeMutation.isPending ? 'Cerrando...' : 'Cerrar contrato'}
-            </button>
-          )}
         </div>
       </div>
+
+      {steps.length > 0 && (
+        <div className="detail-card">
+          <WorkflowStepper steps={steps} currentStepSlug={currentStepSlug} />
+        </div>
+      )}
+
+      {canAct && (
+        <ProcessActionBar
+          steps={steps}
+          currentStepSlug={currentStepSlug}
+          entityStatus={contract.erp_contract_status}
+          isPending={moveMutation.isPending || closeMutation.isPending}
+          onMoveStep={(payload) => void moveMutation.mutate(payload as Record<string, unknown>)}
+          onRequestSignature={() => void signatureMutation.mutate(undefined)}
+          isRequestingSignature={signatureMutation.isPending}
+          hasActiveSignatureRequest={Boolean(activeSignatureRequest)}
+          advanceBlockedReason={advanceBlockedReason}
+        />
+      )}
 
       <div className="detail-layout">
         <div className="detail-layout__main">
@@ -128,10 +152,38 @@ export function ContractDetailPage() {
             <DocumentsPanel
               referenceType="contract"
               referenceId={id ?? ''}
-              canUpload={hasPermission('erp.documents.upload')}
-              canDelete={hasPermission('erp.documents.delete')}
+              canUpload={hasPermission('erp.documents.upload') && user?.applicationRole === 'legal'}
+              canDelete={hasPermission('erp.documents.delete') && user?.applicationRole === 'legal'}
             />
           </Can>
+
+          {currentStepSlug === 'contractor_signature' && activeSignatureRequest && (
+            <div className="detail-card signature-link-panel">
+              <h2 className="detail-card__section-title">
+                <Link size={16} />
+                Link de firma para el contratista
+              </h2>
+              <p className="detail-text" style={{ fontSize: '0.85rem', color: 'var(--color-text-soft)' }}>
+                Comparte este enlace con <strong>{activeSignatureRequest.erp_external_signature_request_signer_name}</strong> para que firme el contrato.
+                Estado: <strong>{activeSignatureRequest.erp_external_signature_request_status}</strong>
+              </p>
+              <div className="signature-link-row">
+                <span className="signature-link-url">
+                  {window.location.origin}{APP_ROUTES.sign(activeSignatureRequest.erp_external_signature_request_public_token)}
+                </span>
+                <button
+                  className="btn btn--secondary btn--sm"
+                  type="button"
+                  onClick={() => void navigator.clipboard.writeText(
+                    `${window.location.origin}${APP_ROUTES.sign(activeSignatureRequest.erp_external_signature_request_public_token)}`
+                  )}
+                >
+                  <Copy size={13} />
+                  Copiar
+                </button>
+              </div>
+            </div>
+          )}
 
           <Can permission="erp.comments.view">
             <CommentsPanel

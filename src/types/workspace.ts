@@ -38,7 +38,8 @@ export interface AuthUser {
   workspace_user_last_name?: string
   email: string
   workspace_user_email: string
-  roles: WorkspaceRole[]
+  roles: string[]
+  applicationRole?: string
 }
 
 export interface AuthSession {

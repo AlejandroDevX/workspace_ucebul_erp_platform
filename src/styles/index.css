@@ -11,6 +11,8 @@
 @import './components/panel.css';
 @import './components/sidebar.css';
 @import './components/topbar.css';
+@import './components/notifications.css';
 @import './pages/dashboard.css';
 @import './pages/detail.css';
 @import './pages/form.css';
+@import './pages/sign.css';

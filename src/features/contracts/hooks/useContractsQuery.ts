@@ -12,6 +12,14 @@ export function useContractsQuery(filters?: ContractFilters) {
   })
 }
 
+export function useMyContractsQuery() {
+  return useQuery({
+    queryKey: [QUERY_KEY, 'my-tasks'],
+    queryFn: () => contractsService.list({ my_tasks: 1 }),
+    staleTime: 30_000,
+  })
+}
+
 export function useContractQuery(id: EntityId) {
   return useQuery({
     queryKey: [QUERY_KEY, id],
@@ -57,7 +65,7 @@ export function useMoveContractStepMutation(id: EntityId) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () => contractsService.moveStep(id),
+    mutationFn: (payload?: Record<string, unknown>) => contractsService.moveStep(id, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [QUERY_KEY, id] })
     },
@@ -69,6 +77,18 @@ export function useCloseContractMutation(id: EntityId) {
 
   return useMutation({
     mutationFn: () => contractsService.close(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: [QUERY_KEY, id] })
+    },
+  })
+}
+
+export function useRequestContractSignatureMutation(id: EntityId) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload?: { erp_external_signature_request_document_id?: EntityId }) =>
+      contractsService.requestSignature(id, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [QUERY_KEY, id] })
     },

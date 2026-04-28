@@ -89,6 +89,15 @@ function parseSession(responseData: unknown): AuthSession | null {
     ? (responseData.current_application_access as unknown as WorkspaceUserApplication)
     : null
 
+  const appRoleSlug = isRecord(responseData.current_application_access) &&
+    isRecord((responseData.current_application_access as Record<string, unknown>).workspace_application_role)
+    ? readString(((responseData.current_application_access as Record<string, unknown>).workspace_application_role as Record<string, unknown>).workspace_application_role_slug)
+    : undefined
+
+  if (appRoleSlug) {
+    user.applicationRole = appRoleSlug
+  }
+
   const perms = isRecord(responseData.current_application_permissions)
     ? (responseData.current_application_permissions as unknown as GroupedPermissions)
     : {}

@@ -1,13 +1,17 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, ArrowRight, X } from 'lucide-react'
+import { ArrowLeft, Pencil, Link, Copy } from 'lucide-react'
 import {
   useContractAddendumQuery,
   useMoveAddendumStepMutation,
   useCloseAddendumMutation,
+  useRequestAddendumSignatureMutation,
 } from '../hooks/useContractAddendumsQuery'
 import { Can } from '@/components/permissions/Can'
 import { DocumentsPanel } from '@/features/documents/components/DocumentsPanel'
 import { CommentsPanel } from '@/features/comments/components/CommentsPanel'
+import { ProcessActionBar } from '@/components/process/ProcessActionBar'
+import { useDocumentsQuery } from '@/features/documents/components/DocumentsPanel'
+import { WorkflowStepper } from '@/components/process/WorkflowStepper'
 import { APP_ROUTES } from '@/routes/paths'
 import { getErrorMessage } from '@/utils/error-message'
 import { formatDate } from '@/utils/format'
@@ -25,10 +29,12 @@ function DetailRow({ label, value }: { label: string; value?: string | null }) {
 export function ContractAddendumDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { hasPermission } = useAuth()
+  const { user, hasPermission } = useAuth()
   const query = useContractAddendumQuery(id ?? '')
   const moveMutation = useMoveAddendumStepMutation(id ?? '')
   const closeMutation = useCloseAddendumMutation(id ?? '')
+  const signatureMutation = useRequestAddendumSignatureMutation(id ?? '')
+  const documentsQuery = useDocumentsQuery('contract_addendum', id ?? '')
 
   if (query.isLoading) {
     return (
@@ -52,6 +58,25 @@ export function ContractAddendumDetailPage() {
 
   const addendum = query.data
   if (!addendum) return null
+
+  const steps = addendum.process?.workflow?.steps ?? []
+  const currentStepSlug = addendum.process?.current_step?.erp_workflow_step_slug
+  const activeSignatureRequest = addendum.process?.signatureRequests?.find(
+    (r) =>
+      r.erp_external_signature_request_status === 'pending' ||
+      r.erp_external_signature_request_status === 'viewed',
+  )
+
+  const assignedUserId = addendum.process?.erp_process_assigned_to_workspace_user_id
+  const responsibleRole = addendum.process?.erp_process_current_responsible_role_name
+  const canAct = assignedUserId
+    ? user?.workspace_user_id === assignedUserId
+    : Boolean(responsibleRole && user?.applicationRole === responsibleRole)
+
+  const hasDocuments = (documentsQuery.data?.length ?? 0) > 0
+  const advanceBlockedReason = currentStepSlug === 'legal_review' && !hasDocuments
+    ? 'Debes cargar al menos un documento antes de enviar a Dirección'
+    : undefined
 
   return (
     <div className="page-content">
@@ -79,32 +104,28 @@ export function ContractAddendumDetailPage() {
               Editar
             </button>
           </Can>
-
-          <Can permission="erp.contract_addendums.move_step">
-            <button
-              className="btn btn--secondary"
-              type="button"
-              disabled={moveMutation.isPending}
-              onClick={() => void moveMutation.mutate()}
-            >
-              <ArrowRight size={15} aria-hidden="true" />
-              {moveMutation.isPending ? 'Moviendo...' : 'Mover paso'}
-            </button>
-          </Can>
-
-          {hasPermission('erp.contract_addendums.close') && addendum.erp_contract_addendum_status !== 'closed' && (
-            <button
-              className="btn btn--danger"
-              type="button"
-              disabled={closeMutation.isPending}
-              onClick={() => void closeMutation.mutate()}
-            >
-              <X size={15} aria-hidden="true" />
-              {closeMutation.isPending ? 'Cerrando...' : 'Cerrar otrosí'}
-            </button>
-          )}
         </div>
       </div>
+
+      {steps.length > 0 && (
+        <div className="detail-card">
+          <WorkflowStepper steps={steps} currentStepSlug={currentStepSlug} />
+        </div>
+      )}
+
+      {canAct && (
+        <ProcessActionBar
+          steps={steps}
+          currentStepSlug={currentStepSlug}
+          entityStatus={addendum.erp_contract_addendum_status}
+          isPending={moveMutation.isPending || closeMutation.isPending}
+          onMoveStep={(payload) => void moveMutation.mutate(payload as Record<string, unknown>)}
+          onRequestSignature={() => void signatureMutation.mutate(undefined)}
+          isRequestingSignature={signatureMutation.isPending}
+          hasActiveSignatureRequest={Boolean(activeSignatureRequest)}
+          advanceBlockedReason={advanceBlockedReason}
+        />
+      )}
 
       <div className="detail-layout">
         <div className="detail-layout__main">
@@ -141,10 +162,38 @@ export function ContractAddendumDetailPage() {
             <DocumentsPanel
               referenceType="contract_addendum"
               referenceId={id ?? ''}
-              canUpload={hasPermission('erp.documents.upload')}
-              canDelete={hasPermission('erp.documents.delete')}
+              canUpload={hasPermission('erp.documents.upload') && user?.applicationRole === 'legal'}
+              canDelete={hasPermission('erp.documents.delete') && user?.applicationRole === 'legal'}
             />
           </Can>
+
+          {currentStepSlug === 'contractor_signature' && activeSignatureRequest && (
+            <div className="detail-card signature-link-panel">
+              <h2 className="detail-card__section-title">
+                <Link size={16} />
+                Link de firma para el contratista
+              </h2>
+              <p className="detail-text" style={{ fontSize: '0.85rem', color: 'var(--color-text-soft)' }}>
+                Comparte este enlace con <strong>{activeSignatureRequest.erp_external_signature_request_signer_name}</strong> para que firme.
+                Estado: <strong>{activeSignatureRequest.erp_external_signature_request_status}</strong>
+              </p>
+              <div className="signature-link-row">
+                <span className="signature-link-url">
+                  {window.location.origin}{APP_ROUTES.sign(activeSignatureRequest.erp_external_signature_request_public_token)}
+                </span>
+                <button
+                  className="btn btn--secondary btn--sm"
+                  type="button"
+                  onClick={() => void navigator.clipboard.writeText(
+                    `${window.location.origin}${APP_ROUTES.sign(activeSignatureRequest.erp_external_signature_request_public_token)}`
+                  )}
+                >
+                  <Copy size={13} />
+                  Copiar
+                </button>
+              </div>
+            </div>
+          )}
 
           <Can permission="erp.comments.view">
             <CommentsPanel

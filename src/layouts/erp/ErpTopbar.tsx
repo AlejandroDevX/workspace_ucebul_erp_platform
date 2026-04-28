@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLogoutMutation } from '@/features/auth/hooks/useAuthMutations'
 import { APP_ROUTES } from '@/routes/paths'
 import { useAuthStore } from '@/features/auth/store/auth.store'
+import { NotificationsBell } from '@/features/notifications/components/NotificationsBell'
 
 export function ErpTopbar() {
   const navigate = useNavigate()
@@ -31,6 +32,7 @@ export function ErpTopbar() {
         </div>
 
         <div className="topbar__actions">
+          <NotificationsBell />
           <Dropdown
             items={[
               {

@@ -141,3 +141,109 @@
   border-color: var(--color-primary);
   box-shadow: var(--shadow-sm);
 }
+
+/* My tasks section */
+.my-tasks-section {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.my-tasks-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section-title__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.task-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.task-row:hover {
+  background: rgba(20, 93, 160, 0.04);
+  border-color: rgba(20, 93, 160, 0.3);
+}
+
+.task-row__info {
+  display: grid;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-row__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-row__sub {
+  font-size: 0.78rem;
+  color: var(--color-text-soft);
+}
+
+.task-row__arrow {
+  color: var(--color-text-soft);
+  flex-shrink: 0;
+}
+
+.task-step-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  background: rgba(20, 93, 160, 0.08);
+  color: var(--color-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.empty-tasks-text {
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+  padding: var(--space-4) 0;
+}
+
+.loading-state--sm {
+  padding: var(--space-4) 0;
+  min-height: unset;
+}

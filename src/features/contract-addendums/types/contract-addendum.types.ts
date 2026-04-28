@@ -1,4 +1,5 @@
 import type { EntityId } from '@/types/common'
+import type { ContractProcess } from '@/features/contracts/types/contract.types'
 
 export const ADDENDUM_TYPES = [
   { label: 'Fecha', value: 'date' },
@@ -26,6 +27,7 @@ export interface ContractAddendum {
     erp_contract_id: EntityId
     erp_contract_title: string
   }
+  process?: ContractProcess
 }
 
 export type CreateContractAddendumDto = Omit<

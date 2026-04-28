@@ -1,55 +1,72 @@
-import { useQuery } from '@tanstack/react-query'
-import { FileText, FilePlus2, CheckSquare, Users, Plus } from 'lucide-react'
+import { FileText, FilePlus2, CheckSquare, Users, Plus, ArrowRight, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { erpApi } from '@/services/erpApi'
 import { Can } from '@/components/permissions/Can'
 import { APP_ROUTES } from '@/routes/paths'
 import { useAuth } from '@/hooks/useAuth'
+import { useMyContractsQuery } from '@/features/contracts/hooks/useContractsQuery'
+import { useMyAddendumsQuery } from '@/features/contract-addendums/hooks/useContractAddendumsQuery'
+import type { Contract } from '@/features/contracts/types/contract.types'
+import type { ContractAddendum } from '@/features/contract-addendums/types/contract-addendum.types'
 
-interface DashboardStats {
-  activeContracts: number
-  contractsInReview: number
-  pendingAddendums: number
-  pendingApprovals: number
+const STEP_LABEL: Record<string, string> = {
+  coordinator_creation: 'Creación coordinador',
+  administrative_review: 'Revisión administrativa',
+  legal_review: 'Revisión jurídica',
+  direction_approval: 'Aprobación dirección',
+  contractor_signature: 'Firma contratista',
+  coordinator_close: 'Cierre coordinador',
 }
 
-async function fetchDashboardStats(): Promise<DashboardStats> {
-  const [contracts, addendums, approvals] = await Promise.allSettled([
-    erpApi.get('/erp/contracts', { params: { per_page: 1 } }),
-    erpApi.get('/erp/contract-addendums', { params: { per_page: 1 } }),
-    erpApi.get('/erp/approvals', { params: { per_page: 1 } }),
-  ])
+function StepBadge({ slug }: { slug?: string }) {
+  if (!slug) return null
+  return (
+    <span className="task-step-badge">
+      {STEP_LABEL[slug] ?? slug}
+    </span>
+  )
+}
 
-  const contractsData = contracts.status === 'fulfilled'
-    ? (contracts.value.data as { data?: { total?: number } })
-    : null
-  const addendumsData = addendums.status === 'fulfilled'
-    ? (addendums.value.data as { data?: { total?: number } })
-    : null
-  const approvalsData = approvals.status === 'fulfilled'
-    ? (approvals.value.data as { data?: { total?: number } })
-    : null
+function ContractTaskRow({ contract, onClick }: { contract: Contract; onClick: () => void }) {
+  const stepSlug = contract.process?.currentStep?.erp_workflow_step_slug
+  return (
+    <button className="task-row" type="button" onClick={onClick}>
+      <div className="task-row__info">
+        <span className="task-row__title">{contract.erp_contract_title}</span>
+        <span className="task-row__sub">{contract.contractor?.erp_third_party_name ?? '—'}</span>
+      </div>
+      <StepBadge slug={stepSlug} />
+      <ArrowRight size={14} className="task-row__arrow" />
+    </button>
+  )
+}
 
-  return {
-    activeContracts: contractsData?.data?.total ?? 0,
-    contractsInReview: 0,
-    pendingAddendums: addendumsData?.data?.total ?? 0,
-    pendingApprovals: approvalsData?.data?.total ?? 0,
-  }
+function AddendumTaskRow({ addendum, onClick }: { addendum: ContractAddendum; onClick: () => void }) {
+  const stepSlug = addendum.process?.currentStep?.erp_workflow_step_slug
+  return (
+    <button className="task-row" type="button" onClick={onClick}>
+      <div className="task-row__info">
+        <span className="task-row__title">{addendum.erp_contract_addendum_title}</span>
+        <span className="task-row__sub">{addendum.contract?.erp_contract_title ?? '—'}</span>
+      </div>
+      <StepBadge slug={stepSlug} />
+      <ArrowRight size={14} className="task-row__arrow" />
+    </button>
+  )
 }
 
 export function DashboardPage() {
   const navigate = useNavigate()
   const { user, currentApplication } = useAuth()
 
-  const statsQuery = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: fetchDashboardStats,
-    retry: false,
-  })
+  const myContractsQuery = useMyContractsQuery()
+  const myAddendumsQuery = useMyAddendumsQuery()
 
   const displayName = [user?.name, user?.lastName].filter(Boolean).join(' ').trim() || 'Usuario'
-  const stats = statsQuery.data
+
+  const myContracts = (myContractsQuery.data ?? []) as Contract[]
+  const myAddendums = (myAddendumsQuery.data ?? []) as ContractAddendum[]
+  const totalTasks = myContracts.length + myAddendums.length
+  const isLoadingTasks = myContractsQuery.isLoading || myAddendumsQuery.isLoading
 
   return (
     <div className="page-content">
@@ -75,63 +92,42 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div className="stats-grid">
-        <Can permission="erp.contracts.view">
-          <article className="stat-card">
-            <span className="stat-card__icon stat-card__icon--blue">
-              <FileText size={22} />
-            </span>
-            <div className="stat-card__body">
-              <p className="stat-card__label">Contratos activos</p>
-              <p className="stat-card__value">
-                {statsQuery.isLoading ? '—' : (stats?.activeContracts ?? 0)}
-              </p>
-            </div>
-          </article>
-        </Can>
+      <section className="my-tasks-section">
+        <div className="my-tasks-section__header">
+          <h2 className="section-title">
+            <Clock size={18} />
+            Mi trabajo asignado
+            {!isLoadingTasks && (
+              <span className="section-title__count">{totalTasks}</span>
+            )}
+          </h2>
+        </div>
 
-        <Can permission="erp.contracts.view">
-          <article className="stat-card">
-            <span className="stat-card__icon stat-card__icon--orange">
-              <FileText size={22} />
-            </span>
-            <div className="stat-card__body">
-              <p className="stat-card__label">Contratos en revisión</p>
-              <p className="stat-card__value">
-                {statsQuery.isLoading ? '—' : (stats?.contractsInReview ?? 0)}
-              </p>
-            </div>
-          </article>
-        </Can>
-
-        <Can permission="erp.contract_addendums.view">
-          <article className="stat-card">
-            <span className="stat-card__icon stat-card__icon--green">
-              <FilePlus2 size={22} />
-            </span>
-            <div className="stat-card__body">
-              <p className="stat-card__label">Otrosíes pendientes</p>
-              <p className="stat-card__value">
-                {statsQuery.isLoading ? '—' : (stats?.pendingAddendums ?? 0)}
-              </p>
-            </div>
-          </article>
-        </Can>
-
-        <Can permission="erp.approvals.view">
-          <article className="stat-card">
-            <span className="stat-card__icon stat-card__icon--purple">
-              <CheckSquare size={22} />
-            </span>
-            <div className="stat-card__body">
-              <p className="stat-card__label">Aprobaciones pendientes</p>
-              <p className="stat-card__value">
-                {statsQuery.isLoading ? '—' : (stats?.pendingApprovals ?? 0)}
-              </p>
-            </div>
-          </article>
-        </Can>
-      </div>
+        {isLoadingTasks ? (
+          <div className="loading-state loading-state--sm">
+            <div className="spinner" aria-label="Cargando..." />
+          </div>
+        ) : totalTasks === 0 ? (
+          <p className="empty-tasks-text">No tienes tareas asignadas actualmente.</p>
+        ) : (
+          <div className="task-list">
+            {myContracts.map((contract) => (
+              <ContractTaskRow
+                key={contract.erp_contract_id}
+                contract={contract}
+                onClick={() => navigate(APP_ROUTES.contractDetail(contract.erp_contract_id))}
+              />
+            ))}
+            {myAddendums.map((addendum) => (
+              <AddendumTaskRow
+                key={addendum.erp_contract_addendum_id}
+                addendum={addendum}
+                onClick={() => navigate(APP_ROUTES.contractAddendumDetail(addendum.erp_contract_addendum_id))}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="quick-access-section">
         <h2 className="section-title">Accesos rápidos</h2>
@@ -166,6 +162,17 @@ export function DashboardPage() {
             >
               <Users size={20} aria-hidden="true" />
               <span>Nuevo contratista</span>
+            </button>
+          </Can>
+
+          <Can permission="erp.contracts.view">
+            <button
+              className="quick-access-card"
+              type="button"
+              onClick={() => navigate(APP_ROUTES.contracts)}
+            >
+              <CheckSquare size={20} aria-hidden="true" />
+              <span>Ver todos los contratos</span>
             </button>
           </Can>
         </div>

@@ -17,6 +17,7 @@ import { ContractAddendumDetailPage } from '@/features/contract-addendums/pages/
 import { ContractAddendumFormPage } from '@/features/contract-addendums/pages/ContractAddendumFormPage'
 import { ApprovalsPage } from '@/features/approvals/pages/ApprovalsPage'
 import { DocumentsPage } from '@/features/documents/pages/DocumentsPage'
+import { PublicSignaturePage } from '@/features/signature/pages/PublicSignaturePage'
 import { UnauthorizedPage } from '@/pages/UnauthorizedPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { ROUTE_SEGMENTS } from '@/routes/paths'
@@ -138,6 +139,10 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: 'sign/:token',
+    element: <PublicSignaturePage />,
   },
   {
     path: '*',

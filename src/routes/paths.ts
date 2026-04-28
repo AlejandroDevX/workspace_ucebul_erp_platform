@@ -31,4 +31,5 @@ export const APP_ROUTES = {
   approvals: '/approvals',
   documents: '/documents',
   unauthorized: '/unauthorized',
+  sign: (token: string) => `/sign/${token}`,
 } as const
