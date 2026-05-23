@@ -15,6 +15,7 @@ import { WorkflowStepper } from '@/components/process/WorkflowStepper'
 import { APP_ROUTES } from '@/routes/paths'
 import { getErrorMessage } from '@/utils/error-message'
 import { formatDate } from '@/utils/format'
+import { label as l } from '@/utils/labels'
 import { useAuth } from '@/hooks/useAuth'
 
 function DetailRow({ label, value }: { label: string; value?: string | null }) {
@@ -61,10 +62,11 @@ export function ContractAddendumDetailPage() {
 
   const steps = addendum.process?.workflow?.steps ?? []
   const currentStepSlug = addendum.process?.current_step?.erp_workflow_step_slug
-  const activeSignatureRequest = addendum.process?.signatureRequests?.find(
+  const activeSignatureRequest = addendum.process?.signature_requests?.find(
     (r) =>
       r.erp_external_signature_request_status === 'pending' ||
-      r.erp_external_signature_request_status === 'viewed',
+      r.erp_external_signature_request_status === 'viewed' ||
+      r.erp_external_signature_request_status === 'signed',
   )
 
   const assignedUserId = addendum.process?.erp_process_assigned_to_workspace_user_id
@@ -120,6 +122,7 @@ export function ContractAddendumDetailPage() {
           entityStatus={addendum.erp_contract_addendum_status}
           isPending={moveMutation.isPending || closeMutation.isPending}
           onMoveStep={(payload) => void moveMutation.mutate(payload as Record<string, unknown>)}
+          onClose={() => void closeMutation.mutate()}
           onRequestSignature={() => void signatureMutation.mutate(undefined)}
           isRequestingSignature={signatureMutation.isPending}
           hasActiveSignatureRequest={Boolean(activeSignatureRequest)}
@@ -133,8 +136,8 @@ export function ContractAddendumDetailPage() {
             <h2 className="detail-card__section-title">Información general</h2>
             <div className="detail-grid">
               <DetailRow label="Contrato base" value={addendum.contract?.erp_contract_title} />
-              <DetailRow label="Tipo" value={addendum.erp_contract_addendum_type} />
-              <DetailRow label="Estado" value={addendum.erp_contract_addendum_status} />
+              <DetailRow label="Tipo" value={l.addendumType(addendum.erp_contract_addendum_type)} />
+              <DetailRow label="Estado" value={l.addendumStatus(addendum.erp_contract_addendum_status)} />
               <DetailRow label="Vigencia" value={formatDate(addendum.erp_contract_addendum_effective_date)} />
             </div>
 
@@ -175,7 +178,7 @@ export function ContractAddendumDetailPage() {
               </h2>
               <p className="detail-text" style={{ fontSize: '0.85rem', color: 'var(--color-text-soft)' }}>
                 Comparte este enlace con <strong>{activeSignatureRequest.erp_external_signature_request_signer_name}</strong> para que firme.
-                Estado: <strong>{activeSignatureRequest.erp_external_signature_request_status}</strong>
+                Estado: <strong>{l.signatureStatus(activeSignatureRequest.erp_external_signature_request_status)}</strong>
               </p>
               <div className="signature-link-row">
                 <span className="signature-link-url">

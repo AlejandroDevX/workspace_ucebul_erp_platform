@@ -6,6 +6,7 @@ import { Can } from '@/components/permissions/Can'
 import { APP_ROUTES } from '@/routes/paths'
 import { getErrorMessage } from '@/utils/error-message'
 import { formatDate } from '@/utils/format'
+import { label } from '@/utils/labels'
 import type { ContractAddendum } from '../types/contract-addendum.types'
 import type { EntityId } from '@/types/common'
 
@@ -102,9 +103,9 @@ export function ContractAddendumsPage() {
                 <tr key={String(a.erp_contract_addendum_id)}>
                   <td>{a.erp_contract_addendum_title}</td>
                   <td>{a.contract?.erp_contract_title ?? '—'}</td>
-                  <td><span className="badge badge--neutral">{a.erp_contract_addendum_type}</span></td>
+                  <td><span className="badge badge--neutral">{label.addendumType(a.erp_contract_addendum_type)}</span></td>
                   <td>{formatDate(a.erp_contract_addendum_effective_date)}</td>
-                  <td><span className="badge badge--neutral">{a.erp_contract_addendum_status}</span></td>
+                  <td><span className="badge badge--neutral">{label.addendumStatus(a.erp_contract_addendum_status)}</span></td>
                   <td>
                     <div className="table-actions">
                       <button

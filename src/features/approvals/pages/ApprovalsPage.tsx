@@ -5,6 +5,7 @@ import { erpApi } from '@/services/erpApi'
 import { Can } from '@/components/permissions/Can'
 import { getErrorMessage } from '@/utils/error-message'
 import { formatDate } from '@/utils/format'
+import { label } from '@/utils/labels'
 import type { Approval } from '../types/approval.types'
 import type { EntityId } from '@/types/common'
 
@@ -28,18 +29,13 @@ function useApprovalsQuery() {
 }
 
 function ApprovalStatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
+  const tones: Record<string, string> = {
     pending: 'badge--warning',
     approved: 'badge--success',
     rejected: 'badge--danger',
   }
-  const labels: Record<string, string> = {
-    pending: 'Pendiente',
-    approved: 'Aprobado',
-    rejected: 'Rechazado',
-  }
 
-  return <span className={`badge ${map[status] ?? 'badge--neutral'}`}>{labels[status] ?? status}</span>
+  return <span className={`badge ${tones[status] ?? 'badge--neutral'}`}>{label.approvalStatus(status)}</span>
 }
 
 export function ApprovalsPage() {

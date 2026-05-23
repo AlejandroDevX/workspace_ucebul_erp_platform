@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react'
 
 interface WorkflowStep {
-  erp_workflow_step_id: number
+  erp_workflow_step_id: number | string
   erp_workflow_step_slug: string
   erp_workflow_step_name: string
   erp_workflow_step_order: number

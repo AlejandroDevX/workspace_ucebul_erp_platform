@@ -6,18 +6,24 @@ import { Can } from '@/components/permissions/Can'
 import { APP_ROUTES } from '@/routes/paths'
 import { getErrorMessage } from '@/utils/error-message'
 import { formatDate, formatCurrency } from '@/utils/format'
+import { label } from '@/utils/labels'
 import type { Contract } from '../types/contract.types'
 import type { EntityId } from '@/types/common'
 
 function ContractStatusBadge({ status }: { status: string }) {
   const tones: Record<string, string> = {
     active: 'badge--success',
+    signed: 'badge--success',
     draft: 'badge--neutral',
-    review: 'badge--warning',
+    administrative_review: 'badge--warning',
+    legal_review: 'badge--warning',
+    direction_review: 'badge--warning',
+    pending_signature: 'badge--warning',
     closed: 'badge--muted',
+    cancelled: 'badge--muted',
   }
 
-  return <span className={`badge ${tones[status] ?? 'badge--neutral'}`}>{status}</span>
+  return <span className={`badge ${tones[status] ?? 'badge--neutral'}`}>{label.contractStatus(status)}</span>
 }
 
 export function ContractsPage() {
@@ -116,7 +122,7 @@ export function ContractsPage() {
                 <tr key={String(c.erp_contract_id)}>
                   <td>{c.erp_contract_title}</td>
                   <td>{c.contractor?.erp_third_party_name ?? '—'}</td>
-                  <td>{c.erp_contract_contract_type ?? '—'}</td>
+                  <td>{label.contractType(c.erp_contract_contract_type)}</td>
                   <td>{formatCurrency(c.erp_contract_total_value)}</td>
                   <td>{formatDate(c.erp_contract_start_date)}</td>
                   <td><ContractStatusBadge status={c.erp_contract_status} /></td>

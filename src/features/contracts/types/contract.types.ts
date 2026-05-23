@@ -18,7 +18,17 @@ export interface ContractProcess {
   current_step?: { erp_workflow_step_slug: string; erp_workflow_step_name: string }
   workflow?: { steps?: WorkflowStep[] }
   documents?: Array<{ erp_document_id: EntityId }>
-  signatureRequests?: Array<{
+  events?: Array<{
+    erp_process_event_id: EntityId
+    erp_process_event_type: string
+    erp_process_event_title: string
+    erp_process_event_description?: string | null
+    erp_process_event_old_status?: string | null
+    erp_process_event_new_status?: string | null
+    erp_process_event_created_by_workspace_user_id?: EntityId | null
+    erp_process_event_created_at?: string | null
+  }>
+  signature_requests?: Array<{
     erp_external_signature_request_id: EntityId
     erp_external_signature_request_status: string
     erp_external_signature_request_public_token: string

@@ -24,6 +24,7 @@ interface ProcessActionBarProps {
   entityStatus: string
   isPending: boolean
   onMoveStep: (payload: MoveStepPayload) => void
+  onClose?: () => void
   onRequestSignature?: () => void
   isRequestingSignature?: boolean
   hasActiveSignatureRequest?: boolean
@@ -146,6 +147,7 @@ export function ProcessActionBar({
   entityStatus,
   isPending,
   onMoveStep,
+  onClose,
   onRequestSignature,
   isRequestingSignature,
   hasActiveSignatureRequest,
@@ -166,6 +168,11 @@ export function ProcessActionBar({
     currentStepSlug === 'contractor_signature'
 
   function handleForwardClick() {
+    if (currentStep?.erp_workflow_step_is_final) {
+      onClose?.()
+      return
+    }
+
     const targetRole = config?.targetRole
     if (targetRole) {
       setPendingPayload({})
