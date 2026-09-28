@@ -100,64 +100,38 @@
   margin-top: var(--space-1);
 }
 
-/* Quick access */
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.quick-access-section {
+/* Dashboard 2-column grid */
+.dashboard-grid {
   display: grid;
-  gap: var(--space-4);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
 }
 
-.quick-access-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-.quick-access-card {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
+/* Dashboard sections */
+.dashboard-section {
   background: var(--color-surface-strong);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--color-text);
-  transition:
-    background var(--transition-base),
-    border-color var(--transition-base),
-    box-shadow var(--transition-base);
-}
-
-.quick-access-card:hover {
-  background: rgba(20, 93, 160, 0.04);
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-/* My tasks section */
-.my-tasks-section {
+  padding: var(--space-5) var(--space-6);
   display: grid;
   gap: var(--space-4);
 }
 
-.my-tasks-section__header {
+.dashboard-section__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+/* Section title */
 .section-title {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text);
 }
 
 .section-title__count {
@@ -174,6 +148,20 @@
   font-weight: 700;
 }
 
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* My tasks */
 .task-list {
   display: grid;
   gap: var(--space-2);
@@ -237,13 +225,228 @@
   flex-shrink: 0;
 }
 
-.empty-tasks-text {
-  color: var(--color-text-soft);
-  font-size: 0.9rem;
-  padding: var(--space-4) 0;
+/* Tasks empty state */
+.tasks-empty {
+  display: grid;
+  place-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) 0;
+  text-align: center;
 }
 
+.tasks-empty__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.tasks-empty__subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+}
+
+/* Quick access */
+.quick-access-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.quick-access-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.quick-access-card:hover {
+  background: rgba(20, 93, 160, 0.04);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-access-card__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.quick-access-card__info {
+  flex: 1;
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.quick-access-card__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.quick-access-card__desc {
+  font-size: 0.75rem;
+  color: var(--color-text-soft);
+}
+
+.quick-access-card__chevron {
+  color: var(--color-text-soft);
+  flex-shrink: 0;
+}
+
+/* Activity list */
+.activity-list {
+  display: grid;
+  gap: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.activity-item__content {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.activity-item__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-item__subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-soft);
+}
+
+.activity-item__date {
+  font-size: 0.72rem;
+  color: var(--color-text-soft);
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+
+/* Deadline list */
+.deadline-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.deadline-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.deadline-badge {
+  display: grid;
+  place-items: center;
+  min-width: 3rem;
+  min-height: 3rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: white;
+  text-align: center;
+  flex-shrink: 0;
+  padding: var(--space-2);
+  gap: 0.1rem;
+}
+
+.deadline-badge__day {
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.deadline-badge__month {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.deadline-item__content {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.deadline-item__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deadline-item__subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-soft);
+}
+
+.deadline-days {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+/* Loading state */
 .loading-state--sm {
   padding: var(--space-4) 0;
   min-height: unset;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 960px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-access-grid {
+    grid-template-columns: 1fr;
+  }
 }
